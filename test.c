@@ -38,9 +38,8 @@ int main()
 	for (i = 0; i < htable_size(ht); ++i) {
 		uint32_t *tmp = htable_get(ht, i);
 
-		printf("%p\n", tmp);
-		printf("htable_get(%d): %p => *%d(original: %p same: %s)\n",
-			i, tmp, ptr[i], *tmp, ptr[i] == tmp ? "yes" : "nop"
+		printf("htable_get(%d): %p => *%d (original: %p same: %s)\n",
+			i, tmp, *tmp, ptr[i], ptr[i] == tmp ? "yes" : "nop"
 		);
 		free(ptr[i]);
 	}
