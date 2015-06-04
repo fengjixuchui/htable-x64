@@ -118,14 +118,17 @@ failure:
 .globl htable_free
 	DEF_FUN(htable_free)
 htable_free:
-	movq	%rdi, %rax
+	pushq	%rsi
+
+	movq	%rdi, %rsi
 	movq	(%rdi), %rdi
 	call	free
 
-	movq	%rax, %rdi
+	movq	%rsi, %rdi
 	call	free
 
 	xorq	%rax, %rax
+	popq	%rsi
 	ret
 
 /**

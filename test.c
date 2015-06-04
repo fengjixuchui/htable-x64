@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 extern void *htable_init(size_t);
-extern void htable_free(void *table);
+extern void htable_free(void *);
 extern void htable_add(void *, size_t, const void *);
 extern void *htable_get(void *, size_t);
 
