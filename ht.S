@@ -145,49 +145,50 @@ htable_expand:
 	.section 	.text.unlikely		/* cold  */
 	DEF_FUN(update_common)
 update_common:
-	/* We're going to do nasty stuff on the pointer  */
-	pushq	FIRST_ARG
+	pushq	%rsi
+	pushq	%rbx
+	pushq	%rcx
+	pushq	%rdx
 
 	cmpq	$0, __HT_SIZE		/* No elements?  */
 	je	__figure_commmons	/* Unlikely, let it have the longer jump.  */
 
-	/* mask diff in %rdx */
-	andq	__HT_COMMON_MASK, %rdx
-	xorq	__HT_COMMON_BITS, %rdx
-	notq	%rdx
+	/* mask diff in %rsi */
+	andq	__HT_COMMON_MASK, %rsi
+	xorq	__HT_COMMON_BITS, %rsi
+	notq	%rsi
 
 	/* bits diff in %rbx */
-	movq	%rdx, %rbx
+	movq	%rsi, %rbx
 	andq	__HT_COMMON_BITS, %rbx
 
 	movq	__HT_SIZE, %rcx
-	movq	__HT_PTR, %rdi
+	movq	__HT_PTR, %rdx
 
 loop_table:
-	andq	%rdx, (%rdi, %rcx, 8)	/* ht[i] &= ~maskdiff  */
-	orq	%rbx, (%rdi, %rcx, 8)	/* ht[i] |= bitsdiff  */
+	andq	%rsi, (%rdx, %rcx, 8)	/* ht[i] &= ~maskdiff  */
+	orq	%rbx, (%rdx, %rcx, 8)	/* ht[i] |= bitsdiff  */
 
 	subq	$1, %rcx
-	jne	loop_table
+	jnz	loop_table
 
-	andq	%rdx, __HT_COMMON_MASK
-	andq	%rdx, __HT_COMMON_BITS
+	andq	%rsi, __HT_COMMON_MASK
+	andq	%rsi, __HT_COMMON_BITS
 
 	jmp	done
 
 __figure_commmons:
-	movl	$63, %ecx
+	movq	$63, %rcx
 	jmp 	figure_commons
 
 again:
-	subl	$1, %ecx
-	je	done
+	subq	$1, %rcx
+	jl	done
 
 figure_commons:
-	btq	%rcx, %rdx
-	jnc	again
+	btq	%rcx, %rsi
+	jnc	again		/* Not set?  */
 
-	movq	%rdx, %rdi	/* Save %rdx for bits  */
 	/* ~(1 << %cl)  */
 	movq	$-2, %rdx
 	rolq	%cl, %rdx
@@ -195,15 +196,14 @@ figure_commons:
 	movq	%rdx, __HT_COMMON_MASK
 
 	/* Set bits  */
-	andq	__HT_COMMON_MASK, %rdi
-	movq	%rdi, __HT_COMMON_BITS
+	andq	__HT_COMMON_MASK, %rsi
+	movq	%rsi, __HT_COMMON_BITS
 
 done:
-	popq	%rdi
+	popq	%rdx
 	popq	%rcx
 	popq	%rbx
-	popq	%rdx
-
+	popq	%rsi
 	ret
 
 
