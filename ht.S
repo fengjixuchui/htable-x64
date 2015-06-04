@@ -281,7 +281,7 @@ addit:
 
 	Example:
 		movq	TABLE, %rdi
-		movl	INDEX, %esi
+		movq	INDEX, %rsi
 		call	htable_get
 		movq	%rax, RESULT
 */
@@ -297,6 +297,55 @@ htable_get:
 	orq	__HT_COMMON_BITS, %rax		/* (table[index] & ~mask) | bits  */
 
 	popq	%rdx
+	ret
+
+/*
+	void *htable_getbyhash(void *ht @rdi, size_t hash @rsi)
+ */
+.global htable_getbyhash
+	DEF_FUN(htable_getbyhash)
+htable_getbyhash:
+	pushq	%rcx
+	pushq	%rdx
+	pushq	%r8
+	pushq	%r9
+	pushq	%r10
+
+	call 	hash_ptr_bits
+	movq	__HT_PTR, %rdx
+	movq	__HT_COMMON_MASK, %r9
+	xorq	%rcx, %rcx
+
+looptable:
+	movq	(%rdx, %rcx, 8), %r8
+	testq	%r8, %r8
+	jz	next_please		/* Unlikely.  */
+
+	movq	%r8, %r10
+	andq	%r10, %r9
+	cmpq	%r9, %rax
+	jnz	next_please
+
+	movq	__HT_COMMON_MASK, %r10
+	notq	%r10
+	andq	%r10, %r8
+	orq	__HT_COMMON_BITS, %r8
+	movq	%r8, %rax
+	jmp	finished
+
+next_please:
+	incq	%rcx
+	cmpq	__HT_SIZE, %rcx
+	jnz	looptable
+	xorq	%rax, %rax
+
+finished:
+	popq	%r10
+	popq	%r9
+	popq	%r8
+	popq	%rdx
+	popq	%rcx
+
 	ret
 
 	.section	.text.unlikely					/* cold  */
