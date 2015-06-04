@@ -23,37 +23,22 @@
  */
 #define INITIAL_SPACE		64
 
-/* This needs to be removed  */
-#if defined(__linux__) && !defined(__MSYS__) && !defined(__MINGW32__)
-#define	FIRST_ARG		%rdi
-#define SECND_ARG		%rsi
-#define THIRD_ARG		%rdx
-#define FORTH_ARG		%rcx
-
-#define DEF_FUN(name)	.type name, @function
-#else
-#define FIRST_ARG		%rcx
-#define SECND_ARG		%rdx
-#define THIRD_ARG		%r8
-#define FORTH_ARG		%r9
-
-#define DEF_FUN(name)	.type name, @function
-#endif
+#define DEF_FUN(name)		.type name, @function
 
 #define HT_PTR(reg)		(reg)
-#define __HT_PTR		HT_PTR(FIRST_ARG)
+#define __HT_PTR		HT_PTR(%rdi)
 
 #define HT_COMMON_MASK(reg)	8(reg)
-#define __HT_COMMON_MASK	HT_COMMON_MASK(FIRST_ARG)
+#define __HT_COMMON_MASK	HT_COMMON_MASK(%rdi)
 
 #define HT_COMMON_BITS(reg)	16(reg)
-#define __HT_COMMON_BITS	HT_COMMON_BITS(FIRST_ARG)
+#define __HT_COMMON_BITS	HT_COMMON_BITS(%rdi)
 
 #define HT_SIZE(reg)		24(reg)
-#define __HT_SIZE		HT_SIZE(FIRST_ARG)
+#define __HT_SIZE		HT_SIZE(%rdi)
 
 #define HT_CAP(reg)		32(reg)
-#define __HT_CAP		HT_CAP(FIRST_ARG)
+#define __HT_CAP		HT_CAP(%rdi)
 
 /**
 	void *htable_init() - Allocate and initialize a hash table
