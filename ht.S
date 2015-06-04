@@ -260,6 +260,7 @@ addit:
 
 	/* Add it  */
 	movq	__HT_PTR, %r9
+	movq	__HT_SIZE, %r8
 	movq	%rcx, (%r9, %r8, 8)
 	incq	__HT_SIZE
 
@@ -276,8 +277,8 @@ addit:
 	@table: the table pointer returned by htable_init()
 
 	Example:
-		movl	INDEX, %esi
 		movq	TABLE, %rdi
+		movl	INDEX, %esi
 		call	htable_get
 		movq	%rax, RESULT
 */
@@ -286,12 +287,11 @@ addit:
 htable_get:
 	pushq	%rdx
 
-	movq	(%rdi), %rdx
-	movq	HT_COMMON_MASK(%rdi), %rax
-	movslq	%esi, %rsi
-	notq	%rax			/* ~mask  */
-	andq	(%rdx, %rsi, 8), %rax	/* (table[index] & ~mask)  */
-	orq	HT_COMMON_BITS(%rdi), %rax	/* (table[index] & ~mask) | bits  */
+	movq	__HT_COMMON_MASK, %rax
+	notq	%rax				/* ~mask  */
+	movq	__HT_PTR, %rdx
+	andq	(%rdx, %rsi, 8), %rax		/* (table[index] & ~mask)  */
+	orq	__HT_COMMON_BITS, %rax		/* (table[index] & ~mask) | bits  */
 
 	popq	%rdx
 	ret
