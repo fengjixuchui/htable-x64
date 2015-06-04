@@ -1,7 +1,7 @@
 /*
  * Hash table implementation in x64 assembly (AT&T flavour)
  *
- * Copyright (c) 2014 Ahmed Samy  <f.fallen45@gmail.com>
+ * Copyright (c) 2014-2015 Ahmed Samy  <f.fallen45@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -218,7 +218,7 @@ hash_ptr_bits:
 	xorq	%rcx, %rax		/* (hash >> size) ^ hash  */
 	andq	__HT_COMMON_MASK, %rax	/* In total: (hash ^ (hash >> size)) & common_mask  */
 
-	popq	%rbx
+	popq	%r8
 	ret
 
 	DEF_FUN(expand_table)
@@ -226,39 +226,49 @@ expand_table:
 	ret
 
 /**
-	void htable_add(void *table, const void *ptr, const size_t hash)
+	void htable_add(void *table @rdi, const size_t hash @esi, const void
+	*p @rdx)
 */
 .globl htable_add
 	DEF_FUN(htable_add)
 htable_add:
 	pushq	%rcx
+	pushq	%rbx
+	pushq	%r8
+	pushq	%r9
 
 	movq	__HT_SIZE, %rcx
-	cmpq	%rcx,__HT_CAP
-	jne	proceed
+	incq	%rcx
+	cmpq	%rcx, __HT_CAP		/* Full?  */
+	jl	proceed	
 	call	expand_table
 
 proceed:
-	movq	__HT_COMMON_MASK, %rdi
+	movq	__HT_COMMON_MASK, %rcx
 	movq	%rdx, %rbx
-	andq	%rdi, %rbx		/* (ptr & common_mask)  */
-	cmpq	__HT_COMMON_BITS, %rbx
-	je	proceed_2
+	andq	%rbx, %rcx		/* (ptr & common_mask)  */
+	cmpq	__HT_COMMON_BITS, %rcx
+	je	addit
 	call	update_common
-	
-proceed_2:
+
+addit:
 	call 	hash_ptr_bits
-	notq	%rdi			/* ~common_mask  */
-	andq	%rdi, %rdx		/* ptr & ~common_mask  */
-	orq	%rax, %rdx		/* (ptr & ~common_mask) | bits  */
+	movq	__HT_COMMON_MASK, %rcx
+	notq	%rcx			/* ~common_mask  */
+	andq	%rdx, %rcx		/* ptr & ~common_mask  */
+	orq	%rax, %rcx		/* (ptr & ~common_mask) | bits  */
 
 	/* Add it  */
 	movq	__HT_PTR, %r9
-	movq	%rdx, (%r9, %r8, 8)
+	movq	%rcx, (%r9, %r8, 8)
 	incq	__HT_SIZE
 
-	xorq	%rax, %rax
+	popq	%r9
+	popq	%r8
+	popq	%rbx
 	popq	%rcx
+
+	xorq 	%rax, %rax
 	ret
 
 /**
