@@ -197,16 +197,15 @@ done:
 */
 	DEF_FUN(hash_ptr_bits)
 hash_ptr_bits:
-	pushq	%r8
+	pushq	%rcx
 
-	movq	%rcx, %r8
 	movq	__HT_SIZE, %rcx
-	movq	%rcx, %rax		/* We return a temporary.  */
+	movq	%rsi, %rax
 	shrq	%cl, %rax		/* hash >> size  */
-	xorq	%rcx, %rax		/* (hash >> size) ^ hash  */
+	xorq	%rsi, %rax		/* (hash >> size) ^ hash  */
 	andq	__HT_COMMON_MASK, %rax	/* In total: (hash ^ (hash >> size)) & common_mask  */
 
-	popq	%r8
+	popq	%rcx
 	ret
 
 	DEF_FUN(expand_table)
