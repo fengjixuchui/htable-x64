@@ -12,5 +12,5 @@ This is mainly a challenge.
 
 ## License
 
-The Expat License (MIT).
+LGPL v2.1+
 
