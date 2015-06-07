@@ -58,8 +58,6 @@
 .globl htable_init
 	DEF_FUN(htable_init)
 htable_init:
-	pushq	%rdi
-	pushq	%rsi
 	pushq	%rbx
 
 	movl	$40, %edi	/* See structure above.  */
@@ -83,8 +81,6 @@ htable_init:
 	movq	%rbx, %rax				/* Put the data structure on %rax and return  */
 
 	popq	%rbx
-	popq	%rsi
-	popq	%rdi
 	ret
 
 htable_failure:
@@ -93,8 +89,6 @@ htable_failure:
 
 failure:
 	popq	%rbx
-	popq	%rsi
-	popq	%rdi
 	ret
 
 /**
@@ -103,8 +97,6 @@ failure:
 .globl htable_free
 	DEF_FUN(htable_free)
 htable_free:
-	pushq	%rsi
-
 	movq	%rdi, %rsi
 	movq	(%rdi), %rdi
 	call	free
@@ -113,7 +105,6 @@ htable_free:
 	call	free
 
 	xorq	%rax, %rax
-	popq	%rsi
 	ret
 
 /**
@@ -130,10 +121,7 @@ htable_expand:
 	.section 	.text.unlikely		/* cold  */
 	DEF_FUN(update_common)
 update_common:
-	pushq	%rsi
 	pushq	%rbx
-	pushq	%rcx
-	pushq	%rdx
 
 	cmpq	$0, __HT_SIZE		/* No elements?  */
 	je	__figure_commmons	/* Unlikely, let it have the longer jump.  */
@@ -185,10 +173,7 @@ figure_commons:
 	movq	%rsi, __HT_COMMON_BITS
 
 done:
-	popq	%rdx
-	popq	%rcx
 	popq	%rbx
-	popq	%rsi
 	ret
 
 
@@ -197,15 +182,11 @@ done:
 */
 	DEF_FUN(hash_ptr_bits)
 hash_ptr_bits:
-	pushq	%rcx
-
 	movq	__HT_SIZE, %rcx
 	movq	%rsi, %rax
 	shrq	%cl, %rax		/* hash >> size  */
 	xorq	%rsi, %rax		/* (hash >> size) ^ hash  */
 	andq	__HT_COMMON_MASK, %rax	/* In total: (hash ^ (hash >> size)) & common_mask  */
-
-	popq	%rcx
 	ret
 
 	DEF_FUN(expand_table)
@@ -213,13 +194,12 @@ expand_table:
 	ret
 
 /**
-	void htable_add(void *table @rdi, const size_t hash @esi, const void
+	void htable_add(void *table @rdi, const size_t hash @rsi, const void
 	*p @rdx)
 */
 .globl htable_add
 	DEF_FUN(htable_add)
 htable_add:
-	pushq	%rcx
 	pushq	%rbx
 	pushq	%r8
 	pushq	%r9
@@ -254,7 +234,6 @@ addit:
 	popq	%r9
 	popq	%r8
 	popq	%rbx
-	popq	%rcx
 
 	xorq 	%rax, %rax
 	ret
@@ -272,25 +251,19 @@ addit:
 .globl htable_get
 	DEF_FUN(htable_get)
 htable_get:
-	pushq	%rdx
-
 	movq	__HT_COMMON_MASK, %rax
 	notq	%rax				/* ~mask  */
 	movq	__HT_PTR, %rdx
 	andq	(%rdx, %rsi, 8), %rax		/* (table[index] & ~mask)  */
 	orq	__HT_COMMON_BITS, %rax		/* (table[index] & ~mask) | bits  */
-
-	popq	%rdx
 	ret
 
 /*
 	void *htable_getbyhash(void *ht @rdi, size_t hash @rsi)
  */
-.global htable_getbyhash
+.globl htable_getbyhash
 	DEF_FUN(htable_getbyhash)
 htable_getbyhash:
-	pushq	%rcx
-	pushq	%rdx
 	pushq	%r8
 	pushq	%r9
 	pushq	%r10
@@ -327,8 +300,6 @@ finished:
 	popq	%r10
 	popq	%r9
 	popq	%r8
-	popq	%rdx
-	popq	%rcx
 
 	ret
 
