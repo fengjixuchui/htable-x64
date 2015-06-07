@@ -189,10 +189,6 @@ hash_ptr_bits:
 	andq	__HT_COMMON_MASK, %rax	/* In total: (hash ^ (hash >> size)) & common_mask  */
 	ret
 
-	DEF_FUN(expand_table)
-expand_table:
-	ret
-
 /**
 	void htable_add(void *table @rdi, const size_t hash @rsi, const void
 	*p @rdx)
@@ -208,7 +204,7 @@ htable_add:
 	incq	%rcx
 	cmpq	%rcx, __HT_CAP		/* Full?  */
 	jl	proceed	
-	call	expand_table
+	call	htable_expand
 
 proceed:
 	movq	__HT_COMMON_MASK, %rcx
