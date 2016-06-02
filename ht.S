@@ -143,7 +143,8 @@ loop_table:
 	andq	%rsi, __HT_COMMON_MASK
 	andq	%rsi, __HT_COMMON_BITS
 
-	jmp	done
+	popq	%rbx
+	ret
 
 __figure_commmons:
 	movq	$63, %rcx
